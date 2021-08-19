@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+set -eo pipefail
+
+SRC="$HOME/code"
+
+[[ -d "$SRC" ]]
+
+export RESTIC_CACHE_DIR=/tmp/restic_cache
+export RESTIC_REPOSITORY=rclone:drive:backup/dev/code
+export RESTIC_PASSWORD_FILE=passwd
+
+args=(
+  -v backup
+  --exclude 'code/*/_mnt'
+  -x
+  "$SRC"
+)
+
+if [[ $# -gt 0 ]]; then
+  args=("$@")
+fi
+
+exec restic "${args[@]}"
