@@ -2,22 +2,27 @@
 set -eo pipefail
 
 SRC="$HOME/code"
+DST=rclone://drive:backup/dev/code
 
 [[ -d "$SRC" ]]
 
-export RESTIC_CACHE_DIR=/tmp/restic_cache
-export RESTIC_REPOSITORY=rclone:drive:backup/dev/code
-export RESTIC_PASSWORD_FILE=passwd
-
 args=(
-  -v backup
-  --exclude 'code/*/_mnt'
-  -x
-  "$SRC"
+  --verbosity info
+  --encrypt-key 00828C1D
+  --exclude-other-filesystems
+  --exclude "$SRC/*/_mnt"
+  --exclude "$SRC/ytdump/meta"
+  --exclude "$SRC/ytdump/out"
 )
 
-if [[ $# -gt 0 ]]; then
-  args=("$@")
+if [[ $# = 0 ]]; then
+  args+=(
+    incr
+    "$SRC"
+    "$DST"
+  )
+else
+  args+=("$@" "$DST")
 fi
 
-exec restic "${args[@]}"
+exec duplicity "${args[@]}"
